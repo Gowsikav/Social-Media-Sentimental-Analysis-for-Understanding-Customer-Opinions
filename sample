@@ -1,0 +1,125 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import nltk
+import emoji
+import time
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.decomposition import LatentDirichletAllocation
+
+# Download the VADER lexicon if not already downloaded
+nltk.download('vader_lexicon')
+
+# Function to preprocess text (convert emojis to text representations)
+def preprocess_text(text):
+    return emoji.demojize(text)
+
+# Function to perform sentiment analysis using VADER
+def sentiment_vader(text):
+    sid = SentimentIntensityAnalyzer()
+    polarity_scores = sid.polarity_scores(text)
+    if polarity_scores['compound'] >= 0.05:
+        return "positive"
+    elif polarity_scores['compound'] <= -0.05:
+        return "negative"
+    else:
+        return "neutral"
+
+# Function to generate a single suggestion based on overall sentiment
+def generate_single_suggestion(sentiment):
+    suggestions = {
+        'positive': 'Highly recommended! This product seems to have great feedback.',
+        'negative': 'Some customers had issues with this product. Consider reading the negative reviews before making a decision.',
+        'neutral': 'Opinions on this product vary. You may want to explore further to make an informed choice.'
+    }
+    return suggestions.get(sentiment, 'No suggestion')
+
+# Function to extract topics from reviews using Latent Dirichlet Allocation (LDA)
+def extract_topics(reviews):
+    vectorizer = CountVectorizer(stop_words='english')
+    dtm = vectorizer.fit_transform(reviews)
+    lda_model = LatentDirichletAllocation(n_components=5, random_state=42)
+    lda_model.fit(dtm)
+    return lda_model.transform(dtm), vectorizer.get_feature_names_out()
+
+# Function to scrape reviews from a single page
+def scrape_reviews(url):
+    response = requests.get(url)
+    content = response.content
+    soup = BeautifulSoup(content, 'html.parser')
+    reviews_container = soup.find('div', {'class': '_1YokD2 _3Mn1Gg col-9-12'})
+    if reviews_container is None:
+        return []
+    review_divs = reviews_container.find_all('div', {'class': 't-ZTKy'})
+    if not review_divs:
+        return []
+    reviews = []
+    for review_div in review_divs:
+        review_text = review_div.get_text().strip()
+        preprocessed_text = preprocess_text(review_text)
+        reviews.append(preprocessed_text)
+    return reviews
+
+# Function to scrape reviews from multiple pages
+def scrape_flipkart_reviews(product_url, num_pages):
+    all_reviews = []
+    for page in range(1, num_pages + 1):
+        url = f"{product_url}&page={page}"
+        reviews = scrape_reviews(url)
+        if not reviews:
+            break
+        all_reviews.extend(reviews)
+        time.sleep(1)  # Reduced delay to 1 second
+    return all_reviews
+
+# Product URL and number of pages to scrape
+product_url = 'https://www.flipkart.com/wipro-gd203-heavy-weight-1200-w-dry-iron/product-reviews/itm73706d23adb97?pid=IRNGHJ3ZYXDVXGGE&lid=LSTIRNGHJ3ZYXDVXGGESKXJ0P&marketplace=FLIPKART'
+num_pages = 10
+
+# Scrape reviews from Flipkart
+all_reviews = scrape_flipkart_reviews(product_url, num_pages)
+
+if not all_reviews:
+    print("Error: No reviews found.")
+    exit()
+
+# Create a DataFrame to store the reviews
+data = pd.DataFrame({'review': all_reviews})
+
+# Perform sentiment analysis on the reviews
+data['polarity'] = data['review'].apply(lambda review: sentiment_vader(review))
+
+# Perform topic extraction using LDA
+topic_probabilities, feature_names = extract_topics(data['review'])
+
+# Calculate overall sentiment
+overall_sentiment = data['polarity'].value_counts().idxmax()
+
+# Generate a single suggestion based on overall sentiment
+suggestion = generate_single_suggestion(overall_sentiment)
+
+# Plot the sentiment distribution
+plt.figure(figsize=(10, 8))
+
+# Plot sentiment distribution
+plt.subplot(2, 1, 1)
+data['polarity'].value_counts().plot(kind='bar', color=['green', 'red', 'blue'], alpha=0.7)
+plt.title('Sentiment Distribution of Reviews')
+plt.xlabel('Sentiment')
+plt.ylabel('Count')
+plt.xticks(rotation=0)
+plt.ylim(0, len(data))
+plt.text(0, len(data) * 0.9, f'Suggestion: {suggestion}', fontsize=12, bbox=dict(facecolor='white', alpha=0.5))
+
+# Plot topics
+plt.subplot(2, 1, 2)
+plt.bar(range(topic_probabilities.shape[1]), topic_probabilities.sum(axis=0))
+plt.xlabel('Topic')
+plt.ylabel('Probability')
+plt.title('Topic Probabilities')
+plt.xticks(range(len(feature_names)), [f"Topic {i+1}\n{' '.join(feature_names[i*5:(i+1)*5])}" for i in range(len(feature_names)//5)], rotation=45, ha='right')
+
+plt.tight_layout()
+plt.show()

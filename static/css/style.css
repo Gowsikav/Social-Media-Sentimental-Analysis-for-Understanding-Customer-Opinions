@@ -1,0 +1,102 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+main {
+  padding: 20px;
+}
+
+#input-section,
+#results-section {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add shadow for depth */
+  box-sizing: border-box;
+}
+
+input[type="text"],
+button {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 100%;
+}
+
+button {
+  background-color: #333;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #555;
+}
+
+#loading-section {
+  display: none;
+  text-align: center;
+}
+
+.spinner {
+  border: 8px solid rgba(0, 0, 0, 0.1);
+  border-left-color: #333;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#sentiment-chart-container {
+  margin-bottom: 20px;
+  text-align: center; /* Center text horizontally */
+}
+
+#chart-container {
+  max-width: 100px; /* Limit maximum width for smaller screens */
+}
+
+#suggestion {
+  font-style: italic;
+  text-align: center;
+  overflow: auto;
+  max-height: 100px;
+  padding: 10px;
+  font-size: 20px;
+}
+
+#sentimentChart {
+  display: block;
+  box-sizing: border-box;
+  height: 10px;
+  width: 150px;
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 10px;
+  z-index: 1;
+}
