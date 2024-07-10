@@ -20,12 +20,22 @@
     <main>
       <section id="input-section">
         <div class="input-field">
-          <label for="productUrl"><h3>Product Reviews URL:</h3></label>
+          <label for="productUrl1"><h3>Product 1 URL:</h3></label>
           <input
             type="text"
-            id="productUrl"
-            name="productUrl"
-            placeholder="Enter the Flipkart URL"
+            id="productUrl1"
+            name="productUrl1"
+            placeholder="Enter the Flipkart URL for Product 1"
+            required
+          />
+        </div>
+        <div class="input-field">
+          <label for="productUrl2"><h3>Product 2 URL:</h3></label>
+          <input
+            type="text"
+            id="productUrl2"
+            name="productUrl2"
+            placeholder="Enter the Flipkart URL for Product 2"
             required
           />
         </div>
@@ -37,10 +47,18 @@
         <p>Loading reviews...</p>
       </section>
       <section id="results-section" style="display: none">
-        <div id="sentiment-chart-container">
-          <canvas id="sentimentChart"></canvas>
+        <div class="chart-container" id="chart-container-1">
+          <canvas id="chart1" style="width: 400px; height: 400px"></canvas>
+          <div id="suggestion1"></div>
+        </div>
+        <div class="chart-container" id="chart-container-2">
+          <canvas id="chart2" style="width: 400px; height: 400px"></canvas>
+          <div id="suggestion2"></div>
         </div>
         <div id="suggestion"></div>
+        <div id="final-suggestion-container">
+          <p id="final-suggestion"></p>
+        </div>
       </section>
     </main>
     <footer>
